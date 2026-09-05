@@ -1,4 +1,6 @@
+import { ElMessage } from 'element-plus'
 import { useNoticeStoreWithOut } from '@/store/modules/notice'
+import { useUserStoreWithOut } from '@/store/modules/user'
 
 let socket: WebSocket | null = null
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null
@@ -9,7 +11,10 @@ let stopped = false
 export const startNoticeSocket = (token?: string) => {
   if (!token || typeof window === 'undefined') return
   stopped = false
-  if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+  if (
+    socket &&
+    (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)
+  ) {
     return
   }
   const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
@@ -33,6 +38,10 @@ export const startNoticeSocket = (token?: string) => {
       const message = JSON.parse(event.data as string) as { type?: string }
       if (message?.type === 'NOTICE') {
         noticeStore.onArrive()
+      } else if (message?.type === 'KICK') {
+        // 管理员强制下线: 本地立即登出(令牌已由后端撤销)
+        ElMessage.warning('账号已被管理员强制下线')
+        void useUserStoreWithOut().logout()
       }
     } catch {
       // 忽略无法解析的消息

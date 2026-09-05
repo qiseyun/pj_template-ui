@@ -14,9 +14,7 @@ import type { SysMenuNode } from '@/api/login/types'
 /** 由完整绝对路径生成稳定且唯一的路由 name(如 /system/user -> SystemUser) */
 const routeNameFromPath = (path: string | null | undefined, fallback: number): string => {
   const segments = (path ?? '').split('/').filter(Boolean)
-  const pascal = segments
-    .map((seg) => `${seg.charAt(0).toUpperCase()}${seg.slice(1)}`)
-    .join('')
+  const pascal = segments.map((seg) => `${seg.charAt(0).toUpperCase()}${seg.slice(1)}`).join('')
   return pascal || `Menu${fallback}`
 }
 
@@ -53,9 +51,16 @@ const convertNode = (
     .filter((child): child is AppCustomRouteRecordRaw => Boolean(child))
   const isLeaf = node.menuType === 2 && !children.length
 
+  // 目录(容器): 只有一个可见子菜单且与目录名不同时强制显示分组,
+  // 避免把"资源管理>文件管理"这类目录折叠掉; 同名(如 首页>首页)仍折叠避免两级重复
+  const rawChildren = node.children ?? []
+  const onlyChild = rawChildren.length === 1 ? rawChildren[0] : null
   const meta: RouteMeta = {
     title: node.menuName,
-    ...(node.icon ? { icon: node.icon } : {})
+    ...(node.icon ? { icon: node.icon } : {}),
+    ...(node.menuType === 1 && onlyChild && onlyChild.menuName !== node.menuName
+      ? { alwaysShow: true }
+      : {})
   }
 
   if (isLeaf) {

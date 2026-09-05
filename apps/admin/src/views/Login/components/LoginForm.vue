@@ -1,10 +1,10 @@
 <script setup lang="ts">
-  import { computed, ref } from 'vue'
+  import { computed, onMounted, ref } from 'vue'
   import { ElCheckbox, ElForm, ElFormItem, ElInput } from 'element-plus'
   import { useRouter } from 'vue-router'
   import { required, useForm } from '@vea/hooks'
-  import { loginApi } from '@/api/login'
-  import type { LoginParams } from '@/api/login/types'
+  import { getCaptchaApi, loginApi } from '@/api/login'
+  import type { CaptchaResult, LoginParams } from '@/api/login/types'
   import { ElButton } from 'element-plus'
   import { useI18n } from 'vue-i18n'
   import { useUserStore } from '@/store/modules/user'
@@ -16,7 +16,11 @@
   const { t } = useI18n()
 
   const { state, actions } = useForm<LoginParams>({
-    initialValues: { username: userStore.rememberedUsername || 'admin', password: '123456' },
+    initialValues: {
+      username: userStore.rememberedUsername || 'admin',
+      password: '123456',
+      captchaCode: ''
+    },
     rules: {
       username: required(() => t('common.required')),
       password: required(() => t('common.required'))
@@ -31,8 +35,40 @@
     return typeof value === 'string' ? value : ''
   })
 
+  /* ---------- 图形验证码 ---------- */
+  const captcha = ref<CaptchaResult | null>(null)
+  const captchaEnabled = computed(() => Boolean(captcha.value?.enabled && captcha.value?.img))
+  /** 拉取(或刷新)验证码; 后端关闭验证码时返回 enabled=false, 前端隐藏输入 */
+  const loadCaptcha = async () => {
+    try {
+      const res = await getCaptchaApi()
+      captcha.value = res?.data ?? null
+    } catch {
+      captcha.value = null
+    }
+  }
+  const refreshCaptcha = () => {
+    if (captcha.value?.enabled !== false) {
+      values.value.captchaCode = ''
+      loadCaptcha()
+    }
+  }
+  onMounted(loadCaptcha)
+
   const login = async (formData: LoginParams) => {
-    const res = await loginApi(formData)
+    const payload: LoginParams = { ...formData }
+    if (captchaEnabled.value) {
+      payload.captchaId = captcha.value?.captchaId ?? ''
+      payload.captchaCode = values.value.captchaCode ?? ''
+    }
+    let res
+    try {
+      res = await loginApi(payload)
+    } catch (error) {
+      // 验证码错误/失效或账号锁定等失败后刷新验证码
+      refreshCaptcha()
+      throw error
+    }
     if (!res) return
 
     userStore.rememberUsername(formData.username, remember.value)
@@ -87,6 +123,27 @@
         @input="actions.clearErrors('password')"
         @blur="actions.validateField('password')"
       />
+    </ElFormItem>
+
+    <ElFormItem v-if="captchaEnabled" class="login-field" :label="t('login.captcha')">
+      <div class="captcha-row">
+        <ElInput
+          v-model="values.captchaCode"
+          :placeholder="t('login.captchaPlaceholder')"
+          autocomplete="off"
+          :disabled="submitting"
+          @input="actions.clearErrors('captchaCode')"
+        />
+        <button
+          type="button"
+          class="captcha-img"
+          :title="t('login.captchaTip')"
+          :disabled="submitting"
+          @click="refreshCaptcha"
+        >
+          <img v-if="captcha?.img" :src="captcha.img" alt="captcha" />
+        </button>
+      </div>
     </ElFormItem>
 
     <div class="login-options">
@@ -204,6 +261,73 @@
     :deep(.el-checkbox__label) {
       font-size: 12px;
       color: var(--login-muted);
+    }
+  }
+
+  .captcha-row {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    gap: 10px;
+
+    :deep(.el-input__wrapper) {
+      min-height: 52px;
+      padding: 0 15px;
+      background: color-mix(in srgb, var(--login-panel) 72%, var(--login-card));
+      border-radius: 14px;
+      box-shadow: inset 0 0 0 1px var(--login-line);
+      transition:
+        box-shadow 180ms ease,
+        background-color 180ms ease;
+
+      &:hover {
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--login-blue) 42%, var(--login-line));
+      }
+
+      &.is-focus {
+        background: var(--login-card);
+        box-shadow:
+          inset 0 0 0 1.5px var(--login-blue),
+          0 7px 20px rgb(52 126 223 / 10%);
+      }
+
+      .el-input__inner {
+        font-size: 14px;
+        color: var(--login-ink);
+      }
+
+      .el-input__inner::placeholder {
+        color: color-mix(in srgb, var(--login-muted) 70%, transparent);
+      }
+    }
+  }
+
+  .captcha-img {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    background: color-mix(in srgb, var(--login-card) 92%, white);
+    border: 1px solid var(--login-line);
+    border-radius: 14px;
+    transition:
+      box-shadow 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease;
+
+    &:hover {
+      border-color: color-mix(in srgb, var(--login-blue) 42%, var(--login-line));
+      box-shadow: 0 7px 18px rgb(52 126 223 / 14%);
+      transform: translateY(-1px);
+    }
+
+    img {
+      display: block;
+      width: 120px;
+      height: 40px;
     }
   }
 

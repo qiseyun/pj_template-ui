@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { reactive, ref } from 'vue'
+  import { useRouter } from 'vue-router'
   import {
     ElDialog,
     ElDropdown,
@@ -15,12 +16,19 @@
   import { useI18n } from 'vue-i18n'
   import { changePasswordApi, logoutApi } from '@/api/login'
   import { useUserStore } from '@/store/modules/user'
+  import UserAvatar from '@/components/UserAvatar/index.vue'
 
   const userStore = useUserStore()
+  const router = useRouter()
 
   const prefixCls = 'v-user-info'
 
   const { t } = useI18n()
+
+  /** 进入个人中心 */
+  const goProfile = () => {
+    router.push('/profile')
+  }
 
   /* ---------- 修改密码 ---------- */
   const pwdVisible = ref(false)
@@ -63,7 +71,10 @@
     }
     pwdSaving.value = true
     try {
-      await changePasswordApi({ oldPassword: pwdForm.oldPassword, newPassword: pwdForm.newPassword })
+      await changePasswordApi({
+        oldPassword: pwdForm.oldPassword,
+        newPassword: pwdForm.newPassword
+      })
       pwdVisible.value = false
       ElMessage.success('密码修改成功, 请使用新密码重新登录')
       await userStore.logout()
@@ -96,10 +107,10 @@
 <template>
   <ElDropdown class="header-action" :class="prefixCls" trigger="click">
     <div class="flex items-center">
-      <img
-        src="@/assets/imgs/avatar.jpg"
-        alt=""
-        class="w-[calc(var(--logo-height)-25px)] rounded-[50%]"
+      <UserAvatar
+        :file-id="userStore.userInfo?.avatar"
+        :alt="userStore.userInfo?.nickname || userStore.userInfo?.username || ''"
+        class="w-[calc(var(--logo-height)-25px)] h-[calc(var(--logo-height)-25px)]"
       />
       <span class="<lg:hidden text-14px pl-[5px] text-[var(--top-header-text-color)]">{{
         userStore.userInfo?.nickname || userStore.userInfo?.username
@@ -107,6 +118,9 @@
     </div>
     <template #dropdown>
       <ElDropdownMenu>
+        <ElDropdownItem>
+          <div @click="goProfile">个人中心</div>
+        </ElDropdownItem>
         <ElDropdownItem>
           <div @click="openPwdDialog">修改密码</div>
         </ElDropdownItem>
@@ -121,13 +135,28 @@
   <ElDialog v-model="pwdVisible" title="修改密码" width="440px" destroy-on-close>
     <ElForm ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" label-width="90px">
       <ElFormItem label="原密码" prop="oldPassword">
-        <ElInput v-model="pwdForm.oldPassword" type="password" show-password placeholder="请输入原密码" />
+        <ElInput
+          v-model="pwdForm.oldPassword"
+          type="password"
+          show-password
+          placeholder="请输入原密码"
+        />
       </ElFormItem>
       <ElFormItem label="新密码" prop="newPassword">
-        <ElInput v-model="pwdForm.newPassword" type="password" show-password placeholder="6-32 位" />
+        <ElInput
+          v-model="pwdForm.newPassword"
+          type="password"
+          show-password
+          placeholder="6-32 位"
+        />
       </ElFormItem>
       <ElFormItem label="确认新密码" prop="confirmPassword">
-        <ElInput v-model="pwdForm.confirmPassword" type="password" show-password placeholder="再次输入新密码" />
+        <ElInput
+          v-model="pwdForm.confirmPassword"
+          type="password"
+          show-password
+          placeholder="再次输入新密码"
+        />
       </ElFormItem>
     </ElForm>
     <template #footer>

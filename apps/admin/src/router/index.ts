@@ -53,6 +53,27 @@ export const constantRouterMap: AppRouteRecordRaw[] = [
     }
   },
   {
+    path: '/profile',
+    component: Layout,
+    name: 'ProfileWrap',
+    meta: {
+      hidden: true,
+      noTagsView: true
+    },
+    children: [
+      {
+        path: '',
+        name: 'Profile',
+        component: () => import('@/views/profile/index.vue'),
+        meta: {
+          title: '个人中心',
+          hidden: true,
+          noTagsView: true
+        }
+      }
+    ]
+  },
+  {
     path: '/:pathMatch(.*)*',
     component: () => import('@/views/Error/404.vue'),
     name: 'Fallback',

@@ -19,7 +19,8 @@
   } from 'element-plus'
   import ContentWrap from '@/components/ContentWrap/index.vue'
   import { roleListAllApi } from '@/api/system/role'
-  import type { SysRoleRow, SysUserRow } from '@/api/system/types'
+  import { deptListAllApi } from '@/api/system/dept'
+  import type { DeptRow, SysRoleRow, SysUserRow } from '@/api/system/types'
   import {
     userAssignRolesApi,
     userPageApi,
@@ -34,6 +35,17 @@
   const permissionStore = usePermissionStore()
   const userStore = useUserStore()
   const hasPerm = permissionStore.hasPerm
+
+  /* ---------- 部门选项(编辑分配部门用) ---------- */
+  const deptOptions = ref<DeptRow[]>([])
+  const loadDeptOptions = async () => {
+    try {
+      const res = await deptListAllApi()
+      deptOptions.value = res?.data ?? []
+    } catch {
+      // 部门接口异常不影响用户列表
+    }
+  }
 
   /* ---------- 列表 ---------- */
   const listLoading = ref(false)
@@ -73,7 +85,10 @@
     onSearch()
   }
 
-  onMounted(fetchList)
+  onMounted(() => {
+    fetchList()
+    loadDeptOptions()
+  })
 
   /* ---------- 新增/编辑弹窗 ---------- */
   const dialogVisible = ref(false)
@@ -85,6 +100,7 @@
     username: '',
     password: '',
     nickname: '',
+    deptId: undefined as number | null | undefined,
     status: 0
   })
   const rules = {
@@ -94,7 +110,14 @@
   }
 
   const openCreate = () => {
-    Object.assign(form, { id: undefined, username: '', password: '', nickname: '', status: 0 })
+    Object.assign(form, {
+      id: undefined,
+      username: '',
+      password: '',
+      nickname: '',
+      deptId: undefined,
+      status: 0
+    })
     dialogTitle.value = '新增用户'
     dialogVisible.value = true
   }
@@ -106,6 +129,7 @@
       username: row.username,
       password: '',
       nickname: row.nickname ?? '',
+      deptId: row.deptId ?? null,
       status: row.status ?? 0
     })
     dialogTitle.value = '编辑用户'
@@ -129,6 +153,7 @@
         id: form.id,
         username: form.username,
         nickname: form.nickname,
+        deptId: form.deptId ?? undefined,
         status: form.status
       }
       if (form.password) payload.password = form.password
@@ -207,7 +232,9 @@
 <template>
   <ContentWrap title="用户管理" message="维护系统账号并分配角色; 删除账号会同步清理其角色关联">
     <template #header>
-      <el-button v-if="hasPerm('sys:user:save')" type="primary" @click="openCreate">新增用户</el-button>
+      <el-button v-if="hasPerm('sys:user:save')" type="primary" @click="openCreate"
+        >新增用户</el-button
+      >
     </template>
 
     <el-form inline class="search-bar" @submit.prevent>
@@ -236,6 +263,9 @@
       <el-table-column prop="id" label="ID" width="70" align="center" />
       <el-table-column prop="username" label="用户名" min-width="130" />
       <el-table-column prop="nickname" label="昵称" min-width="130" />
+      <el-table-column label="部门" min-width="130">
+        <template #default="{ row }">{{ row.deptName || '-' }}</template>
+      </el-table-column>
       <el-table-column label="状态" width="90" align="center">
         <template #default="{ row }">
           <el-tag :type="row.status === 1 ? 'danger' : 'success'">
@@ -247,18 +277,18 @@
       <el-table-column prop="gmtCreated" label="创建时间" width="175" />
       <el-table-column label="操作" width="230" align="center" fixed="right">
         <template #default="{ row }">
-          <el-button v-if="hasPerm('sys:user:assignRole')" link type="primary" @click="openAssign(row)">
+          <el-button
+            v-if="hasPerm('sys:user:assignRole')"
+            link
+            type="primary"
+            @click="openAssign(row)"
+          >
             分配角色
           </el-button>
           <el-button v-if="hasPerm('sys:user:update')" link type="primary" @click="openEdit(row)">
             编辑
           </el-button>
-          <el-button
-            v-if="hasPerm('sys:user:delete')"
-            link
-            type="danger"
-            @click="onRemove(row)"
-          >
+          <el-button v-if="hasPerm('sys:user:delete')" link type="danger" @click="onRemove(row)">
             删除
           </el-button>
         </template>
@@ -282,7 +312,11 @@
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="480px" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="form.username" placeholder="登录用户名(唯一)" :disabled="Boolean(form.id)" />
+          <el-input
+            v-model="form.username"
+            placeholder="登录用户名(唯一)"
+            :disabled="Boolean(form.id)"
+          />
         </el-form-item>
         <el-form-item label="密码" prop="password">
           <el-input
@@ -294,6 +328,16 @@
         </el-form-item>
         <el-form-item label="昵称">
           <el-input v-model="form.nickname" placeholder="显示昵称" />
+        </el-form-item>
+        <el-form-item label="部门">
+          <el-select v-model="form.deptId" placeholder="未分配" clearable style="width: 100%">
+            <el-option
+              v-for="dept in deptOptions"
+              :key="dept.id"
+              :label="dept.deptName"
+              :value="dept.id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
@@ -309,7 +353,12 @@
     </el-dialog>
 
     <!-- 分配角色 -->
-    <el-dialog v-model="assignVisible" :title="`分配角色 - ${assignTarget?.username ?? ''}`" width="460px" destroy-on-close>
+    <el-dialog
+      v-model="assignVisible"
+      :title="`分配角色 - ${assignTarget?.username ?? ''}`"
+      width="460px"
+      destroy-on-close
+    >
       <el-select
         v-model="assignRoleIds"
         multiple

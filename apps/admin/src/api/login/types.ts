@@ -2,6 +2,20 @@
 export interface LoginParams {
   username: string
   password: string
+  /** 验证码标识(由 /auth/captcha 下发; 后端关闭验证码时可省略) */
+  captchaId?: string
+  /** 验证码答案 */
+  captchaCode?: string
+}
+
+/** 登录图形验证码返回(与后端 CaptchaVo 对齐) */
+export interface CaptchaResult {
+  /** 验证码标识(登录时原样回传) */
+  captchaId?: string
+  /** 验证码图片(data URI, 可直接作为 img src) */
+  img?: string
+  /** 是否启用验证码(false 时前端隐藏输入) */
+  enabled: boolean
 }
 
 /** 注册入参 */
@@ -33,6 +47,8 @@ export interface UserInfo {
   id?: number
   username?: string
   nickname?: string
+  /** 头像文件id */
+  avatar?: string | null
   /** 状态: 0正常 1禁用 */
   status?: number
   lastLoginTime?: string

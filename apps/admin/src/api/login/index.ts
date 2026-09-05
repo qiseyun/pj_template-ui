@@ -1,5 +1,6 @@
 import request from '@/request'
 import type {
+  CaptchaResult,
   ChangePasswordParams,
   LoginParams,
   LoginResult,
@@ -7,6 +8,11 @@ import type {
   SysMenuNode,
   UserInfo
 } from './types'
+
+/** 获取登录图形验证码 */
+export const getCaptchaApi = () => {
+  return request.get<CaptchaResult>({ url: '/api/auth/captcha' })
+}
 
 /** 登录: 返回双 token(accessToken + refreshToken) */
 export const loginApi = (data: LoginParams) => {

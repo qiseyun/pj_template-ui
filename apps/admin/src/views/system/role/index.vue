@@ -36,6 +36,9 @@
   const permissionStore = usePermissionStore()
   const hasPerm = permissionStore.hasPerm
 
+  const scopeText = (scope?: number) =>
+    ({ 1: '全部', 2: '本部门及以下', 3: '本部门', 4: '仅本人' })[scope ?? 1] ?? '未知'
+
   /* ---------- 列表 ---------- */
   const listLoading = ref(false)
   const list = ref<SysRoleRow[]>([])
@@ -90,6 +93,7 @@
     roleCode: '',
     remark: '',
     status: 0,
+    dataScope: 1,
     sortNo: 0
   })
   const rules = {
@@ -98,7 +102,15 @@
   }
 
   const openCreate = () => {
-    Object.assign(form, { id: undefined, roleName: '', roleCode: '', remark: '', status: 0, sortNo: 0 })
+    Object.assign(form, {
+      id: undefined,
+      roleName: '',
+      roleCode: '',
+      remark: '',
+      status: 0,
+      dataScope: 1,
+      sortNo: 0
+    })
     dialogTitle.value = '新增角色'
     dialogVisible.value = true
   }
@@ -111,6 +123,7 @@
       roleCode: row.roleCode,
       remark: row.remark ?? '',
       status: row.status ?? 0,
+      dataScope: row.dataScope ?? 1,
       sortNo: row.sortNo ?? 0
     })
     dialogTitle.value = '编辑角色'
@@ -132,6 +145,7 @@
         roleCode: form.roleCode,
         remark: form.remark,
         status: form.status,
+        dataScope: form.dataScope,
         sortNo: form.sortNo
       }
       if (form.id) await roleUpdateApi(payload)
@@ -154,11 +168,15 @@
       return
     }
     try {
-      await ElMessageBox.confirm(`确定删除角色「${row.roleName}」吗? 其关联的用户与权限将被一并清理。`, '提示', {
-        confirmButtonText: '删除',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
+      await ElMessageBox.confirm(
+        `确定删除角色「${row.roleName}」吗? 其关联的用户与权限将被一并清理。`,
+        '提示',
+        {
+          confirmButtonText: '删除',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
     } catch {
       return
     }
@@ -211,17 +229,34 @@
 </script>
 
 <template>
-  <ContentWrap title="角色管理" message="维护角色并授权菜单(目录/菜单/按钮); 删除角色会同步清理其用户与权限关联">
+  <ContentWrap
+    title="角色管理"
+    message="维护角色并授权菜单(目录/菜单/按钮); 删除角色会同步清理其用户与权限关联"
+  >
     <template #header>
-      <el-button v-if="hasPerm('sys:role:save')" type="primary" @click="openCreate">新增角色</el-button>
+      <el-button v-if="hasPerm('sys:role:save')" type="primary" @click="openCreate"
+        >新增角色</el-button
+      >
     </template>
 
     <el-form inline class="search-bar" @submit.prevent>
       <el-form-item label="角色名称">
-        <el-input v-model="query.roleName" placeholder="请输入角色名称" clearable style="width: 170px" @keyup.enter="onSearch" />
+        <el-input
+          v-model="query.roleName"
+          placeholder="请输入角色名称"
+          clearable
+          style="width: 170px"
+          @keyup.enter="onSearch"
+        />
       </el-form-item>
       <el-form-item label="角色编码">
-        <el-input v-model="query.roleCode" placeholder="请输入角色编码" clearable style="width: 160px" @keyup.enter="onSearch" />
+        <el-input
+          v-model="query.roleCode"
+          placeholder="请输入角色编码"
+          clearable
+          style="width: 160px"
+          @keyup.enter="onSearch"
+        />
       </el-form-item>
       <el-form-item label="状态">
         <el-select v-model="query.status" placeholder="全部" clearable style="width: 130px">
@@ -248,15 +283,30 @@
       <el-table-column prop="sortNo" label="排序" width="80" align="center" />
       <el-table-column label="状态" width="90" align="center">
         <template #default="{ row }">
-          <el-tag :type="row.status === 1 ? 'danger' : 'success'">{{ row.status === 1 ? '禁用' : '正常' }}</el-tag>
+          <el-tag :type="row.status === 1 ? 'danger' : 'success'">{{
+            row.status === 1 ? '禁用' : '正常'
+          }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="数据范围" width="130" align="center">
+        <template #default="{ row }">
+          <el-tag size="small" :type="row.dataScope === 1 ? 'success' : 'info'">
+            {{ scopeText(row.dataScope) }}
+          </el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="gmtCreated" label="创建时间" width="175" />
       <el-table-column label="操作" width="220" align="center" fixed="right">
         <template #default="{ row }">
-          <el-button v-if="hasPerm('sys:role:grant')" link type="primary" @click="openGrant(row)">分配权限</el-button>
-          <el-button v-if="hasPerm('sys:role:update')" link type="primary" @click="openEdit(row)">编辑</el-button>
-          <el-button v-if="hasPerm('sys:role:delete')" link type="danger" @click="onRemove(row)">删除</el-button>
+          <el-button v-if="hasPerm('sys:role:grant')" link type="primary" @click="openGrant(row)"
+            >分配权限</el-button
+          >
+          <el-button v-if="hasPerm('sys:role:update')" link type="primary" @click="openEdit(row)"
+            >编辑</el-button
+          >
+          <el-button v-if="hasPerm('sys:role:delete')" link type="danger" @click="onRemove(row)"
+            >删除</el-button
+          >
         </template>
       </el-table-column>
     </el-table>
@@ -281,7 +331,11 @@
           <el-input v-model="form.roleName" placeholder="如: 运营专员" />
         </el-form-item>
         <el-form-item label="角色编码" prop="roleCode">
-          <el-input v-model="form.roleCode" placeholder="如: operator(字母数字)" :disabled="form.roleCode === 'admin'" />
+          <el-input
+            v-model="form.roleCode"
+            placeholder="如: operator(字母数字)"
+            :disabled="form.roleCode === 'admin'"
+          />
         </el-form-item>
         <el-form-item label="排序号">
           <el-input-number v-model="form.sortNo" :min="0" :max="9999" />
@@ -291,6 +345,15 @@
             <el-radio :value="0">正常</el-radio>
             <el-radio :value="1">禁用</el-radio>
           </el-radio-group>
+        </el-form-item>
+        <el-form-item label="数据范围">
+          <el-select v-model="form.dataScope" style="width: 100%">
+            <el-option label="全部数据" :value="1" />
+            <el-option label="本部门及以下" :value="2" />
+            <el-option label="本部门" :value="3" />
+            <el-option label="仅本人" :value="4" />
+          </el-select>
+          <div class="scope-tip">数据权限作用于受控业务查询(示例: 订单管理); 管理员不受限制</div>
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="form.remark" type="textarea" :rows="3" placeholder="角色说明" />
@@ -322,7 +385,10 @@
           <template #default="{ data }">
             <span class="grant-node">
               <span>{{ data.menuName }}</span>
-              <el-tag size="small" :type="data.menuType === 3 ? 'info' : data.menuType === 2 ? 'success' : 'warning'">
+              <el-tag
+                size="small"
+                :type="data.menuType === 3 ? 'info' : data.menuType === 2 ? 'success' : 'warning'"
+              >
                 {{ data.menuType === 1 ? '目录' : data.menuType === 2 ? '菜单' : '按钮' }}
               </el-tag>
               <span v-if="data.permCode" class="grant-perm">{{ data.permCode }}</span>

@@ -40,10 +40,12 @@ const client = createRequest({
   },
   beforeRequest(config) {
     const userStore = useUserStoreWithOut()
+    const isFormData = typeof FormData !== 'undefined' && config.data instanceof FormData
     return {
       ...config,
       headers: {
-        'Content-Type': CONTENT_TYPE,
+        // FormData 由浏览器自动生成 multipart boundary, 不能预设 application/json
+        ...(isFormData ? {} : { 'Content-Type': CONTENT_TYPE }),
         // 后端约定: Authorization: Bearer {accessToken}
         ...(userStore.token ? { Authorization: `Bearer ${userStore.token}` } : {}),
         ...config.headers
@@ -59,9 +61,12 @@ const client = createRequest({
     // token 失效: 静默返回标记, 由上层统一刷新后重试
     if (TOKEN_ERROR_CODES.includes(result.code)) return { __reauth: true } as ReauthMarker
 
-    throw Object.assign(new Error(result.msg || result.message || `Request failed (${result.code})`), {
-      code: result.code
-    })
+    throw Object.assign(
+      new Error(result.msg || result.message || `Request failed (${result.code})`),
+      {
+        code: result.code
+      }
+    )
   },
   onError(error) {
     if (!isCancel(error)) {
@@ -88,7 +93,12 @@ const refreshTokens = (): Promise<boolean> => {
         data: { refreshToken: userStore.refreshToken }
       })
       .then((result) => {
-        if (result && !isReauthMarker(result) && result.code === SUCCESS_CODE && result.data?.accessToken) {
+        if (
+          result &&
+          !isReauthMarker(result) &&
+          result.code === SUCCESS_CODE &&
+          result.data?.accessToken
+        ) {
           userStore.setTokens(result.data)
           return true
         }

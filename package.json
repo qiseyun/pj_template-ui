@@ -51,14 +51,6 @@
     "wrangler": "4.127.1"
   },
   "packageManager": "pnpm@9.15.3",
-  "pnpm": {
-    "peerDependencyRules": {
-      "ignoreMissing": [
-        "eslint",
-        "search-insights"
-      ]
-    }
-  },
   "engines": {
     "node": "^20.19.0 || ^22.13.0 || >=24.0.0",
     "pnpm": ">=9.5.0"
