@@ -41,7 +41,7 @@ Shared packages must not import from `apps/admin`. If a capability needs the Adm
 
 ## Dependency ownership and versions
 
-- The root `package.json` declares only repository-wide tools such as Commitlint, Oxlint, Prettier, Stylelint, and PostCSS. It does not declare Vue application runtime dependencies.
+- The root `package.json` declares only repository-wide tools such as Oxlint, Prettier, Stylelint, and PostCSS. It does not declare Vue application runtime dependencies.
 - Each app declares its own runtime dependencies and build tools instead of relying on packages hoisted from the root to fill missing declarations.
 - Each package declares its direct dependencies and uses `peerDependencies` to express the Vue, Element Plus, or other runtime environment that consumers must provide.
 - Development versions shared by several workspaces are centralized through the `catalog` in `pnpm-workspace.yaml`. Public package peer compatibility ranges remain independently declared.

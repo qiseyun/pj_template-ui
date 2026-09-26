@@ -214,6 +214,73 @@ export interface OperLogRow {
   operTime?: string
 }
 
+/** 定时任务(sys_job) */
+export interface SysJobRow {
+  id?: number
+  jobName?: string
+  jobGroup?: string
+  /** 调用目标: Bean名.方法名 */
+  invokeTarget?: string
+  cronExpr?: string
+  params?: string | null
+  /** 禁止并发: 0允许 1禁止 */
+  concurrent?: number
+  /** 状态: 0正常 1暂停 */
+  status?: number
+  remark?: string | null
+  gmtCreated?: string
+  gmtModified?: string
+}
+
+/** 定时任务执行日志(sys_job_log) */
+export interface SysJobLogRow {
+  id?: number
+  jobId?: number
+  jobName?: string
+  jobGroup?: string
+  invokeTarget?: string
+  params?: string | null
+  /** 触发方式: 0自动调度 1手动执行 */
+  triggerType?: number
+  /** 结果: 0成功 1失败 */
+  success?: number
+  jobMessage?: string | null
+  exceptionInfo?: string | null
+  startTime?: string
+  endTime?: string
+  costMs?: number
+}
+
+/** 工作台-快捷入口(QuickEntryVo) */
+export interface QuickEntryRow {
+  menuId: number
+  title?: string
+  icon?: string | null
+  path?: string | null
+}
+
+/** 工作台-待办聚合分组(WorkbenchTodoVo) */
+export interface WorkbenchTodoGroup {
+  /** 分组类型: notice/jobAlarm 等(前端据此区分行为) */
+  type: string
+  title?: string
+  icon?: string | null
+  /** 待办总数(可能大于 items 条数) */
+  total: number
+  items: WorkbenchTodoItem[]
+}
+
+/** 工作台-待办条目 */
+export interface WorkbenchTodoItem {
+  /** 业务id(字符串) */
+  id: string
+  title?: string
+  summary?: string | null
+  time?: string
+  /** 点击跳转路径(空串表示就地处理) */
+  targetPath?: string
+}
+
 /** 示例业务订单(biz_order) */
 export interface BizOrderRow {
   id: number

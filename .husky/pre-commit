@@ -1,2 +1,0 @@
-pnpm typecheck:admin
-pnpm lint:lint-staged

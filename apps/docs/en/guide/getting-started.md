@@ -4,7 +4,7 @@
 
 - Node.js: `^20.19.0`, `^22.13.0`, or `>=24.0.0`
 - pnpm: `>=9.5.0`
-- Git: required to fetch the source and run Husky
+- Git: required to fetch the source
 
 The repository pins the pnpm major version through `packageManager`. If Corepack is enabled, run:
 
@@ -87,7 +87,7 @@ Use VS Code or a compatible editor with the following extensions:
 - Stylelint
 - DotENV
 
-Oxlint runs from the command line and through Git Hooks, so the project does not need to maintain an additional ESLint configuration.
+Oxlint runs from the command line, so the project does not need to maintain an additional ESLint configuration.
 
 ## Next steps
 

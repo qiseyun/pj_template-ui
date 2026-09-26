@@ -26,7 +26,7 @@ v3 解决四类稳定问题：
 | 国际化   | Vue I18n + Element Plus locale       |
 | 请求     | Axios，通用客户端与应用配置分层      |
 | 图表     | ECharts 按模块注册                   |
-| 工程检查 | Oxlint、Prettier、Stylelint、Husky   |
+| 工程检查 | Oxlint、Prettier、Stylelint          |
 | Monorepo | pnpm workspace                       |
 
 具体版本以仓库中的 `package.json` 和 `pnpm-lock.yaml` 为准，不在文档中重复维护一份容易过期的版本表。

@@ -4,7 +4,7 @@
 
 - Node.js：`^20.19.0`、`^22.13.0` 或 `>=24.0.0`
 - pnpm：`>=9.5.0`
-- Git：用于获取代码和运行 Husky
+- Git：用于获取代码
 
 仓库通过 `packageManager` 固定 pnpm 主版本。已启用 Corepack 时，可执行：
 

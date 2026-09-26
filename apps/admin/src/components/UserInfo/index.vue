@@ -132,8 +132,18 @@
   </ElDropdown>
 
   <!-- 修改密码 -->
-  <ElDialog v-model="pwdVisible" title="修改密码" width="440px" destroy-on-close>
-    <ElForm ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" label-width="90px">
+  <!--
+    append-to-body: 该组件挂在顶栏内, 而顶栏(.v-layout__topbar)带有 backdrop-filter,
+    会为 position: fixed 的后代创建包含块, 导致弹层被限制在顶栏内显示, 故必须挂载到 body
+  -->
+  <ElDialog
+    v-model="pwdVisible"
+    title="修改密码"
+    width="500px"
+    append-to-body
+    destroy-on-close
+  >
+    <ElForm ref="pwdFormRef" :model="pwdForm" :rules="pwdRules" label-width="100px">
       <ElFormItem label="原密码" prop="oldPassword">
         <ElInput
           v-model="pwdForm.oldPassword"
@@ -150,7 +160,7 @@
           placeholder="6-32 位"
         />
       </ElFormItem>
-      <ElFormItem label="确认新密码" prop="confirmPassword">
+      <ElFormItem label="确认新密码" prop="confirmPassword" >
         <ElInput
           v-model="pwdForm.confirmPassword"
           type="password"

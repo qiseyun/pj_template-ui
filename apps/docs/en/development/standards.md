@@ -38,7 +38,7 @@ The main conventions in `.prettierrc.json` are:
 - 100-character line width.
 - Indentation inside Vue script and style blocks.
 
-Do not format code manually against these settings; pre-commit lint-staged will format staged files again.
+Do not format code manually against these settings; run `pnpm format:check` before committing.
 
 ## Styles
 
@@ -46,18 +46,17 @@ Stylelint covers Vue, CSS, Less, SCSS, and HTML files, checking style syntax and
 
 Theme colors should use CSS variables from `@vea/styles`. Keep component-specific styles scoped, and move only genuinely cross-app foundational rules into packages.
 
-## Git Hooks
+## Commit messages
 
-Husky registers hooks after dependency installation. Before a commit, it runs:
+The project **does not configure Git Hooks** (no Husky, lint-staged, or Commitlint). Run the checks yourself before committing:
 
-```text
-pnpm typecheck:admin
-pnpm lint:lint-staged
+```bash
+pnpm typecheck
+pnpm lint
+pnpm format:check
 ```
 
-lint-staged runs Oxlint, Prettier, and Stylelint for the corresponding staged files. Fix type-checking errors instead of carrying them into the branch with `--no-verify`.
-
-Commitlint validates commit messages against Conventional Commits:
+Commit messages follow Conventional Commits, which release-please relies on to generate the CHANGELOG and version numbers:
 
 ```text
 feat: add user management
@@ -66,7 +65,7 @@ docs: update deployment guide
 refactor: simplify request client
 ```
 
-Common allowed types currently include `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `ci`, `chore`, `revert`, and `wip`.
+Common types include `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `ci`, `chore`, `revert`, and `wip`.
 
 ## TypeScript naming
 

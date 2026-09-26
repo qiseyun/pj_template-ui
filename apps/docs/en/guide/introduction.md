@@ -26,7 +26,7 @@ It is not a low-code platform, nor does it attempt to describe every table, dial
 | Internationalization | Vue I18n + Element Plus locale                                 |
 | Requests             | Axios with separate shared-client and app configuration layers |
 | Charts               | ECharts with module-based registration                         |
-| Code quality         | Oxlint, Prettier, Stylelint, and Husky                         |
+| Code quality         | Oxlint, Prettier, and Stylelint                                |
 | Monorepo             | pnpm workspace                                                 |
 
 Refer to `package.json` and `pnpm-lock.yaml` in the repository for exact versions. The documentation does not duplicate a version table that would quickly become outdated.

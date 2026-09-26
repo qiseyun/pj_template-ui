@@ -34,7 +34,7 @@
 | 样式 | UnoCSS + Less | 工具类 + `<style lang="less" scoped>` |
 | 请求 | Axios（@vea/request 封装） | 统一 R{code,msg,data} 契约 |
 | 文档 | VitePress 1（apps/docs） | 独立文档站（本仓库已简化使用） |
-| 质量 | Oxlint / Prettier / Stylelint + Husky + Commitlint | 提交前自动检查 |
+| 质量 | Oxlint / Prettier / Stylelint | 无 Git Hooks，手动执行 `pnpm lint` / `pnpm format:check` / `pnpm style:check` / `pnpm typecheck` |
 | 版本/发布 | pnpm workspace catalog + release-please | 依 Conventional Commits 生成 CHANGELOG |
 
 > Node 要求：`^20.19 || ^22.13 || >=24`（仓库 `.node-version` 建议 22.19.0）；pnpm `>=9.5`（仓库锁定 `pnpm@9.15.3`）。
@@ -104,7 +104,6 @@ pj_template-ui/
 │  ├─ hooks/                  # @vea/hooks：useCrud（列表 CRUD 状态）、useForm/required
 │  ├─ request/                # @vea/request：createRequest（Axios 封装，带取消/拦截钩子）
 │  └─ styles/                 # @vea/styles：全局 reset 与主题 CSS 变量
-├─ .husky/                    # Git 提交钩子（pre-commit / commit-msg + lint-staged 配置）
 ├─ .vscode/ .idea/            # 编辑器配置（非工程逻辑）
 ├─ node_modules/              # pnpm 安装产物（勿手改；pnpm-lock.yaml 负责锁定）
 ├─ package.json               # 根工程：workspace 脚本 + engines + packageManager
@@ -125,13 +124,13 @@ pj_template-ui/
 
 | 文件 | 作用 | 备注 |
 | --- | --- | --- |
-| `package.json` | 根工程：所有脚本（scripts）、Node/pnpm 版本要求（engines）、packageManager、提交工具依赖 | 与 apps/*/package.json、packages/*/package.json 一起构成各包清单 |
+| `package.json` | 根工程：所有脚本（scripts）、Node/pnpm 版本要求（engines）、packageManager | 与 apps/*/package.json、packages/*/package.json 一起构成各包清单 |
 | `pnpm-workspace.yaml` | 声明 monorepo 成员（`apps/*`、`packages/*`）+ **catalog 目录** | catalog 是“依赖版本唯一来源”：`element-plus`、`vue`、`typescript`、`rimraf` 用 `catalog:` 引用，改版本只改这里 |
 | `pnpm-lock.yaml` | 依赖树锁定文件 | ⛔ 永远不要手改，由 `pnpm install` 维护 |
 | `.npmrc` | pnpm 全局配置 | 当前仅 `auto-install-peers=false`（不自动装 peer 依赖） |
 | `.node-version` | 推荐 Node 版本（22.19.0） | 供 nvm/fnm 等工具读取 |
 
-### 2) 代码质量工具（Lint/格式/样式/提交）
+### 2) 代码质量工具（Lint/格式/样式）
 
 | 文件 | 工具 | 作用 |
 | --- | --- | --- |
@@ -141,10 +140,8 @@ pj_template-ui/
 | `.stylelintrc.json` | Stylelint | 校验 less/scss/css/vue/html 样式写法，兼容 `:deep`、less 指令与 rpx 单位 |
 | `.stylelintignore` | Stylelint | 不参与样式检查的路径 |
 | `.postcssrc.json` | PostCSS | 目前仅启用 autoprefixer |
-| `.commitlintrc.json` | Commitlint | 提交信息必须符合 Conventional Commits，`type` 白名单：feat/fix/docs/style/refactor/perf/test/ci/chore/revert/workflow/mod/wip/types/release |
-| `.husky/pre-commit` | Husky | 提交前自动跑 `pnpm typecheck:admin` + lint-staged |
-| `.husky/commit-msg` | Husky | 提交信息交给 commitlint 校验 |
-| `.husky/lintstagedrc.json` | lint-staged | 只对**暂存文件**执行 oxlint --fix / prettier / stylelint --fix |
+
+> 项目**未配置 Git Hooks**（无 Husky / lint-staged / Commitlint）。代码检查与格式化需要手动执行：`pnpm lint`、`pnpm format:check`、`pnpm style:check`、`pnpm typecheck`。
 
 ### 3) 构建 / 发布 / 兼容性
 
@@ -279,7 +276,7 @@ apps/admin/
 - **类型**：接口出入参与后端实体对齐（`api/system/types.ts` 为样例）；尽量少用 `any`（虽未开启强 lint 报错）。
 - **样式**：默认 `<style lang="less" scoped>`；优先取 CSS 变量（`var(--el-*)` 与 `@vea/styles` 主题变量）；需要 unocss 工具类直接写在 class 上；改动后跑 `pnpm style:check`。
 - **国际化**：静态文案建议进 `locales/{zh-CN,en}.ts` 用 key 引用；后端下发的菜单名等动态文案直接用中文（缺失 key 时 i18n 原样回显）。
-- **提交信息**：Conventional Commits，type 从 commitlint 白名单选（feat/fix/docs/refactor/perf/style/chore…），例如 `feat: 新增用户管理页面`。pre-commit 会自动类型检查 + 对暂存文件 lint/格式化，commit-msg 校验格式。
+- **提交信息**：仍按 Conventional Commits 书写（release-please 依赖它生成 CHANGELOG 与版本号），例如 `feat: 新增用户管理页面`。项目没有 Git Hooks，提交前请自行跑 `pnpm typecheck` + `pnpm lint`。
 - **不要提交**：`node_modules/`、`dist*`、本地密钥/环境差异内容。
 
 ### 环境与发布

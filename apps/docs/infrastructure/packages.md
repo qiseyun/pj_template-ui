@@ -41,7 +41,7 @@ packages/request ─────────> Axios
 
 ## 依赖归属与版本
 
-- 根 `package.json` 只声明 Commitlint、Oxlint、Prettier、Stylelint、PostCSS 等全仓工具，不声明 Vue 应用运行依赖。
+- 根 `package.json` 只声明 Oxlint、Prettier、Stylelint、PostCSS 等全仓工具，不声明 Vue 应用运行依赖。
 - 每个 app 声明自己的运行依赖和构建工具，不能依靠根目录提升出的包补齐缺失依赖。
 - 每个 package 声明自己的直接依赖，并用 `peerDependencies` 表达消费方需要提供的 Vue、Element Plus 等运行环境。
 - 多个 workspace 共同使用的开发版本通过 `pnpm-workspace.yaml` 的 `catalog` 统一；公共包的 peer 兼容范围仍保留独立声明。

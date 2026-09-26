@@ -38,7 +38,7 @@ Oxlint 替代了 ESLint，不要再新增 ESLint 配置与依赖。确实需要�
 - 行宽 100。
 - Vue 的 script/style 内部缩进。
 
-不要手工调整成与配置相反的格式；提交前的 lint-staged 会再次格式化暂存文件。
+不要手工调整成与配置相反的格式；提交前请自行执行 `pnpm format:check` 校验。
 
 ## 样式
 
@@ -46,18 +46,17 @@ Stylelint 覆盖 Vue、CSS、Less、SCSS 和 HTML，用于检查样式语法与�
 
 主题色优先引用 `@vea/styles` 的 CSS variables。局部组件样式使用 scoped，只有真正跨应用的基础规则才进入 packages。
 
-## Git Hooks
+## 提交信息
 
-安装依赖后 Husky 注册 hooks。提交前会执行：
+项目**未配置 Git Hooks**（无 Husky / lint-staged / Commitlint），提交前请自行执行：
 
-```text
-pnpm typecheck:admin
-pnpm lint:lint-staged
+```bash
+pnpm typecheck
+pnpm lint
+pnpm format:check
 ```
 
-lint-staged 对暂存文件分别运行 Oxlint、Prettier 和 Stylelint。类型检查失败时，应该修正报错，不要用 `--no-verify` 把问题带入分支。
-
-提交信息由 Commitlint 按 Conventional Commits 校验：
+提交信息按 Conventional Commits 书写，release-please 依赖它生成 CHANGELOG 与版本号：
 
 ```text
 feat: add user management
@@ -66,7 +65,7 @@ docs: update deployment guide
 refactor: simplify request client
 ```
 
-当前允许的常见 type 包括 `feat`、`fix`、`docs`、`style`、`refactor`、`perf`、`test`、`ci`、`chore`、`revert` 和 `wip`。
+常用 type 包括 `feat`、`fix`、`docs`、`style`、`refactor`、`perf`、`test`、`ci`、`chore`、`revert` 和 `wip`。
 
 ## TypeScript 命名
 
