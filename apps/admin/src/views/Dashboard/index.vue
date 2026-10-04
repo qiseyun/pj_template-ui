@@ -13,6 +13,7 @@
   import { useNoticeStore } from '@/store/modules/notice'
   import { markNoticeReadApi, myNoticeDetailApi } from '@/api/notice'
   import type { NoticeRow } from '@/api/notice/types'
+  import RichTextViewer from '@/components/RichTextViewer/index.vue'
   import {
     quickCandidatesApi,
     quickListApi,
@@ -296,7 +297,7 @@
             {{ reading.noticeType === 2 ? '公告' : '通知' }} · 发送人:{{ reading.senderName || '-' }}
             · {{ reading.gmtCreated || '' }}
           </p>
-          <div v-if="reading.content" class="rich-content" v-html="reading.content"></div>
+          <RichTextViewer v-if="reading.content" class="rich-content" :content="reading.content" />
         </template>
       </div>
     </el-dialog>
@@ -656,9 +657,6 @@
 
   .rich-content {
     font-size: 13.5px;
-    line-height: 1.8;
-    color: var(--el-text-color-primary);
-    overflow-wrap: break-word;
   }
 
   .quick-manager {

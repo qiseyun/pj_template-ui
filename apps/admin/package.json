@@ -21,6 +21,8 @@
     "@vea/request": "workspace:*",
     "@vea/styles": "workspace:*",
     "@vueuse/core": "^14.4.0",
+    "@wangeditor/editor": "^5.1.23",
+    "@wangeditor/editor-for-vue": "^5.1.12",
     "echarts": "^6.1.0",
     "element-plus": "catalog:",
     "nprogress": "^0.2.0",

@@ -13,6 +13,7 @@
   } from 'element-plus'
   import type { NoticeKind, NoticeRow } from '@/api/notice/types'
   import { markNoticeReadApi, myNoticeDetailApi, myNoticePageApi } from '@/api/notice'
+  import RichTextViewer from '@/components/RichTextViewer/index.vue'
   import { useNoticeStore } from '@/store/modules/notice'
 
   const noticeStore = useNoticeStore()
@@ -199,8 +200,12 @@
         发布人：{{ readingItem.senderName || '系统' }}　·　发布时间：{{ formatTime(readingItem.gmtCreated) }}
         <span v-if="readingItem.targetDesc" class="read-target">{{ readingItem.targetDesc }}</span>
       </div>
-      <!-- 富文本内容(后台管理端发布, 内网可信) -->
-      <div v-if="readingItem?.content" class="rich-content" v-html="readingItem.content"></div>
+      <!-- 富文本内容(后台管理端发布, 内网可信; 站内图片/视频自动带鉴权) -->
+      <RichTextViewer
+        v-if="readingItem?.content"
+        class="rich-content"
+        :content="readingItem.content"
+      />
     </div>
   </el-dialog>
 </template>
@@ -353,41 +358,8 @@
       content: '';
     }
 
-    :deep(.rich-content) {
+    .rich-content {
       padding: 16px 2px;
-      font-size: 14px;
-      line-height: 1.9;
-      color: var(--el-text-color-primary);
-      overflow-wrap: break-word;
-
-      p {
-        margin: 0 0 12px;
-      }
-
-      h1,
-      h2,
-      h3 {
-        margin: 18px 0 10px;
-        line-height: 1.4;
-      }
-
-      ul,
-      ol {
-        padding-left: 22px;
-        margin: 8px 0;
-      }
-
-      img {
-        max-width: 100%;
-      }
-
-      blockquote {
-        padding: 6px 14px;
-        margin: 10px 0;
-        color: var(--el-text-color-secondary);
-        background: var(--el-fill-color-light);
-        border-left: 3px solid var(--el-color-primary);
-      }
     }
   }
 </style>

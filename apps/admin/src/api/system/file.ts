@@ -63,8 +63,8 @@ export const fileUpload = async (file: File): Promise<FileRow> => {
   return res.data
 }
 
-/** 以 blob 拉取文件内容(带鉴权), 供图片预览与下载使用 */
-const fetchBlobWithAuth = async (path: string): Promise<Blob> => {
+/** 以 blob 拉取文件内容(带鉴权), 供图片预览、富文本渲染与下载使用 */
+export const fetchBlobWithAuth = async (path: string): Promise<Blob> => {
   const token = (await import('@/store/modules/user')).useUserStoreWithOut().token
   const res = await fetch(path, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
   if (!res.ok) {

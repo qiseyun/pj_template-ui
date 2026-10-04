@@ -20,6 +20,9 @@
     "noUnusedParameters": true,
     "paths": {
       "@/*": ["./src/*"],
+      "@wangeditor/editor-for-vue": [
+        "./node_modules/@wangeditor/editor-for-vue/dist/src/index.d.ts"
+      ],
       "@vea/hooks": ["../../packages/hooks/src"],
       "@vea/hooks/*": ["../../packages/hooks/src/*"],
       "@vea/styles": ["../../packages/styles/src"],
@@ -29,5 +32,6 @@
     },
     "types": ["@intlify/unplugin-vue-i18n/types", "vite/client"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "types/**/*.d.ts", "mock/**/*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "types/**/*.d.ts", "mock/**/*.ts"],
+  "exclude": ["src/**/__tests__/**"]
 }

@@ -18,7 +18,8 @@
     ElTag
   } from 'element-plus'
   import ContentWrap from '@/components/ContentWrap/index.vue'
-  import RichTextEditor from '@/components/RichTextEditor/index.vue'
+  import WangEditor from '@/components/WangEditor/index.vue'
+  import RichTextViewer from '@/components/RichTextViewer/index.vue'
   import { roleListAllApi } from '@/api/system/role'
   import { userPageApi } from '@/api/system/user'
   import type { SysRoleRow, SysUserRow } from '@/api/system/types'
@@ -83,7 +84,9 @@
       return
     }
     const plain = (sendForm.content || '').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim()
-    if (!plain) {
+    // 纯图片/视频正文同样视为有效内容
+    const hasMedia = /<(img|video)\b/i.test(sendForm.content || '')
+    if (!plain && !hasMedia) {
       ElMessage.warning('请输入正文内容')
       return
     }
@@ -142,8 +145,8 @@
 
   const typeTag = (type?: number) =>
     type === 2
-      ? { text: '公告', color: 'danger' as 'danger' }
-      : { text: '通知', color: 'primary' as 'primary' }
+      ? { text: '公告', color: 'danger' as const }
+      : { text: '通知', color: 'primary' as const }
 
   /* ---------- 历史详情 ---------- */
   const detailVisible = ref(false)
@@ -177,7 +180,11 @@
 <template>
   <div class="notice-page">
     <!-- 发布区 -->
-    <ContentWrap v-if="hasPerm('sys:notice:send')" title="发布通知/公告" message="支持富文本; 可选择全部用户、按角色或指定用户发送">
+    <ContentWrap
+      v-if="hasPerm('sys:notice:send')"
+      title="发布通知/公告"
+      message="正文支持富文本(加粗、标题、列表、链接、图片与视频); 可选择全部用户、按角色或指定用户发送"
+    >
       <el-form :model="sendForm" label-width="86px" class="send-form">
         <el-form-item label="类型">
           <el-radio-group v-model="sendForm.noticeType">
@@ -196,9 +203,10 @@
         </el-form-item>
 
         <el-form-item label="正文" required>
-          <RichTextEditor
+          <WangEditor
             v-model="sendForm.content"
-            placeholder="请输入通知/公告正文，支持加粗、标题、列表、引用、链接等…"
+            :height="460"
+            placeholder="请输入通知/公告正文，支持加粗、标题、列表、引用、链接、图片与视频…"
           />
         </el-form-item>
 
@@ -319,7 +327,9 @@
           发送人：{{ detail.senderName || '-' }}　|　{{ formatTime(detail.gmtCreated) }}
           <span v-if="detail.targetDesc" class="detail-target">　|　{{ detail.targetDesc }}</span>
         </div>
-        <div class="rich-content" v-html="detail.content"></div>
+        <div class="rich-content">
+          <RichTextViewer :content="detail.content" empty-text="暂无正文" />
+        </div>
       </div>
       <template #footer>
         <el-button @click="detailVisible = false">关闭</el-button>
@@ -368,38 +378,6 @@
 
     :deep(.rich-content) {
       padding-top: 14px;
-      font-size: 14px;
-      line-height: 1.9;
-      overflow-wrap: break-word;
-
-      p {
-        margin: 0 0 12px;
-      }
-
-      h1,
-      h2,
-      h3 {
-        margin: 18px 0 10px;
-        line-height: 1.4;
-      }
-
-      ul,
-      ol {
-        padding-left: 22px;
-        margin: 8px 0;
-      }
-
-      img {
-        max-width: 100%;
-      }
-
-      blockquote {
-        padding: 6px 14px;
-        margin: 10px 0;
-        color: var(--el-text-color-secondary);
-        background: var(--el-fill-color-light);
-        border-left: 3px solid var(--el-color-primary);
-      }
     }
   }
 </style>
